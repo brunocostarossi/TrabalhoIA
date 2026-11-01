@@ -1,3 +1,7 @@
+# ATENÇÃO: este passo usa os rótulos ORIGINAIS do CSV, antes da descoberta do
+# passo 7 (a 1ª foto do período de compra traz o vencedor do round anterior).
+# As notas aqui ficam ~3 pontos acima do resultado final. Ver README.
+
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.dummy import DummyClassifier

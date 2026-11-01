@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -55,5 +56,6 @@ ax_hist.set_xlabel("Probabilidade de vitória do CT prevista pelo modelo", color
 ax_hist.set_ylabel("Fotos", color=TINTA)
 
 fig.tight_layout()
-fig.savefig("grafico_calibracao.png", dpi=150)
-print("Gráfico salvo em grafico_calibracao.png")
+os.makedirs("graficos", exist_ok=True)
+fig.savefig("graficos/calibracao.png", dpi=150)
+print("Gráfico salvo em graficos/calibracao.png")
