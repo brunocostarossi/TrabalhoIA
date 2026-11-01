@@ -1,3 +1,6 @@
+# ATENÇÃO: este passo usa os rótulos ORIGINAIS do CSV, antes da descoberta do
+# passo 7. A versão com rótulos corrigidos está em passo10_graficos.py. Ver README.
+
 import numpy as np
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import accuracy_score

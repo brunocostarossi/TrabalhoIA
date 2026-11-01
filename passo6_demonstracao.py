@@ -41,32 +41,41 @@ def montar_linha(mapa, tempo, bomba, ct_vivos, t_vivos, ct_armas, t_armas,
     return criar_atributos(linha)[COLUNAS]
 
 
+def probabilidade_ct(**cenario):
+    return modelo.predict_proba(montar_linha(**cenario))[0, 1]
+
+
 def prever(descricao, **cenario):
-    prob_ct = modelo.predict_proba(montar_linha(**cenario))[0, 1]
+    prob_ct = probabilidade_ct(**cenario)
     print(f"{descricao:55s} CT {prob_ct:6.1%} | T {1 - prob_ct:6.1%}")
 
 
-# --- 2. Cenários de exemplo ---
-print("=== Cenários ===")
-prever("Início do round, 5x5, ambos de rifle (Mirage)",
-       mapa="de_mirage", tempo=115, bomba=False, ct_vivos=5, t_vivos=5,
-       ct_armas={"m4a4": 4, "awp": 1, "usps": 5}, t_armas={"ak47": 5, "glock": 5}, ct_kits=3)
+if __name__ == "__main__":
+    # --- 2. Cenários de exemplo ---
+    print("=== Cenários ===")
+    prever("Início do round, 5x5, ambos de rifle (Mirage)",
+           mapa="de_mirage", tempo=115, bomba=False, ct_vivos=5, t_vivos=5,
+           ct_armas={"m4a4": 4, "awp": 1, "usps": 5}, t_armas={"ak47": 5, "glock": 5}, ct_kits=3)
 
-prever("5x5, CT em eco (só pistola, sem colete)",
-       mapa="de_mirage", tempo=115, bomba=False, ct_vivos=5, t_vivos=5,
-       ct_armas={"usps": 5}, t_armas={"ak47": 5, "glock": 5}, ct_colete=False)
+    prever("5x5, CT em eco (só pistola, sem colete)",
+           mapa="de_mirage", tempo=115, bomba=False, ct_vivos=5, t_vivos=5,
+           ct_armas={"usps": 5}, t_armas={"ak47": 5, "glock": 5}, ct_colete=False)
 
-prever("Bomba plantada, 3 CT x 2 T, 30s restantes",
-       mapa="de_mirage", tempo=30, bomba=True, ct_vivos=3, t_vivos=2,
-       ct_armas={"m4a4": 3, "usps": 3}, t_armas={"ak47": 2, "glock": 2}, ct_kits=2)
+    prever("Bomba plantada, 3 CT x 2 T, 30s restantes",
+           mapa="de_mirage", tempo=30, bomba=True, ct_vivos=3, t_vivos=2,
+           ct_armas={"m4a4": 3, "usps": 3}, t_armas={"ak47": 2, "glock": 2}, ct_kits=2)
 
-prever("Bomba plantada, 1 CT x 2 T, 15s, CT sem kit",
-       mapa="de_mirage", tempo=15, bomba=True, ct_vivos=1, t_vivos=2,
-       ct_armas={"m4a4": 1, "usps": 1}, t_armas={"ak47": 2, "glock": 2})
+    prever("Bomba plantada, 1 CT x 2 T, 15s, CT sem kit",
+           mapa="de_mirage", tempo=15, bomba=True, ct_vivos=1, t_vivos=2,
+           ct_armas={"m4a4": 1, "usps": 1}, t_armas={"ak47": 2, "glock": 2})
 
-# --- 3. "E se...?": muda uma coisa só e vê a probabilidade mudar ---
-print("\n=== E se os CTs fossem morrendo? (5 T vivos, rifles, Inferno) ===")
-for ct_vivos in range(5, 0, -1):
-    prever(f"{ct_vivos} CT x 5 T",
-           mapa="de_inferno", tempo=90, bomba=False, ct_vivos=ct_vivos, t_vivos=5,
-           ct_armas={"m4a1s": ct_vivos, "usps": ct_vivos}, t_armas={"ak47": 5, "glock": 5})
+    prever("3x3 Inferno, 60s, sem bomba, AWP+2 M4 x 3 AK, kits",
+           mapa="de_inferno", tempo=60, bomba=False, ct_vivos=3, t_vivos=3,
+           ct_armas={"awp": 1, "m4a4": 2}, t_armas={"ak47": 3}, ct_kits=3)
+
+    # --- 3. "E se...?": muda uma coisa só e vê a probabilidade mudar ---
+    print("\n=== E se os CTs fossem morrendo? (5 T vivos, rifles, Inferno) ===")
+    for ct_vivos in range(5, 0, -1):
+        prever(f"{ct_vivos} CT x 5 T",
+               mapa="de_inferno", tempo=90, bomba=False, ct_vivos=ct_vivos, t_vivos=5,
+               ct_armas={"m4a1s": ct_vivos, "usps": ct_vivos}, t_armas={"ak47": 5, "glock": 5})
