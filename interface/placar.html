@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rodadas da Base</title>
+<link rel="stylesheet" href="placar_comum.css">
+</head>
+<body>
+<div class="painel">
+  <div class="titulo">
+    <h1>Placar</h1>
+    <div class="controles">
+      <select id="sel-rodada" aria-label="Escolher rodada"></select>
+      <button id="btn-ant" title="Foto anterior (←)" aria-label="Foto anterior">‹</button>
+      <span class="contador" id="contador"></span>
+      <button id="btn-prox" title="Próxima foto (→)" aria-label="Próxima foto">›</button>
+      <button id="btn-play" title="Reproduzir (espaço)" aria-label="Reproduzir" aria-pressed="false">▶</button>
+      <a class="botao" href="simulador.html" style="display:inline-flex;align-items:center;text-decoration:none">Montar cenário</a>
+    </div>
+  </div>
+
+  <div class="cartao" id="cartao"></div>
+
+  <p class="nota">
+    Rodadas reais do conjunto de teste, com as probabilidades do modelo final (Gradient Boosting), que não viu essas rodadas no treino.
+    A base só traz totais por time: a divisão de vida, colete, capacetes, armas, granadas e kits entre os jogadores é simulada a partir desses totais.
+  </p>
+</div>
+
+<script src="placar_comum.js"></script>
+<script src="placar_dados.js"></script>
+<script>
+(function () {
+  "use strict";
+  const { $, esc, limitar, MAPAS } = Placar;
+  const RODADAS = window.DADOS_PLACAR || [];
+  let iRodada = 0, iFoto = 0, timer = null;
+
+  if (!RODADAS.length) {
+    $("cartao").innerHTML = '<p style="padding:16px">Dados não encontrados. Rode <code>passo11_interface.py</code> para gerá-los.</p>';
+    return;
+  }
+  Placar.criarCartao($("cartao"));
+
+  function render() {
+    const rod = RODADAS[iRodada], foto = rod.fotos[iFoto];
+    const estado = { mapa: rod.mapa, placar_ct: rod.placar_ct, placar_t: rod.placar_t,
+                     tempo: foto.tempo, bomba: foto.bomba, ct: foto.ct, t: foto.t };
+    // Semente fixa por rodada: entre uma foto e outra, a distribuição muda o mínimo possível
+    Placar.mostrar(estado, foto.prob_ct, (iRodada + 1) * 7919);
+    $("sel-rodada").value = iRodada;
+    $("contador").textContent = `Foto ${iFoto + 1} de ${rod.fotos.length}`;
+  }
+
+  function andar(passo) {
+    const n = RODADAS[iRodada].fotos.length;
+    iFoto += passo;
+    if (iFoto >= n) { iRodada = (iRodada + 1) % RODADAS.length; iFoto = 0; }
+    else if (iFoto < 0) { iRodada = (iRodada - 1 + RODADAS.length) % RODADAS.length; iFoto = RODADAS[iRodada].fotos.length - 1; }
+    render();
+  }
+
+  function tocar(ligar) {
+    clearInterval(timer);
+    timer = ligar ? setInterval(() => andar(1), 1600) : null;
+    $("btn-play").textContent = ligar ? "❚❚" : "▶";
+    $("btn-play").setAttribute("aria-pressed", String(ligar));
+  }
+
+  $("sel-rodada").innerHTML = RODADAS.map((r, i) =>
+    `<option value="${i}">Rodada ${r.placar_ct + r.placar_t + 1} · ${esc(MAPAS[r.mapa] || r.mapa)} · ${r.placar_ct}–${r.placar_t}</option>`).join("");
+  $("sel-rodada").addEventListener("change", (e) => { iRodada = +e.target.value; iFoto = 0; render(); });
+  $("btn-ant").addEventListener("click", () => andar(-1));
+  $("btn-prox").addEventListener("click", () => andar(1));
+  $("btn-play").addEventListener("click", () => tocar(!timer));
+  document.addEventListener("keydown", (e) => {
+    if (e.target.tagName === "SELECT") return;
+    if (e.key === "ArrowRight") andar(1);
+    else if (e.key === "ArrowLeft") andar(-1);
+    else if (e.key === " ") { e.preventDefault(); tocar(!timer); }
+  });
+
+  // Abrir direto numa rodada/foto: placar.html#r=45&f=3 (contando a partir de 1)
+  const hash = new URLSearchParams(location.hash.slice(1));
+  iRodada = limitar((+hash.get("r") || 1) - 1, 0, RODADAS.length - 1);
+  iFoto = limitar((+hash.get("f") || 1) - 1, 0, RODADAS[iRodada].fotos.length - 1);
+  render();
+})();
+</script>
+</body>
+</html>
