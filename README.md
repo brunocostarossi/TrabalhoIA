@@ -36,6 +36,9 @@ Todos os scripts rodam da mesma forma, a partir da pasta do projeto.
 | `passo7_rotulos_e_momento.py` | Correção dos rótulos e resultado final no teste |
 | `passo8_calibracao.py` | Teste de calibração das probabilidades e Brier score |
 | `passo9_rede_neural.py` | Comparação com redes neurais (aprendizado profundo) |
+| `passo11_interface.py` | Gera os dados da página de rodadas reais (`interface/placar_dados.js`) |
+| `passo12_modelo_simulador.py` | Treina o modelo do simulador (sem dinheiro) e o exporta para JavaScript (`interface/modelo_simulador.js`) |
+| `interface/` | Páginas do placar: `simulador.html` (montar um cenário) e `placar.html` (rodadas reais), com o código comum em `placar_comum.js` e `placar_comum.css` |
 | `passo10_graficos.py` | Gera os gráficos da pasta `graficos/` |
 
 > **Atenção:** os passos 2 a 5 usam os rótulos **originais** do CSV, antes da descoberta descrita no passo 7. Eles foram mantidos para mostrar a evolução do projeto, e suas notas ficam cerca de 3 pontos acima do resultado final.
@@ -101,6 +104,30 @@ Quando o modelo diz X%, o CT vence perto de X% das vezes (desvio máximo de 6 po
 `passo6_demonstracao.py` permite descrever uma situação e obter a probabilidade de vitória:
 
 ![E se os CTs fossem morrendo](graficos/e_se_cts_morrendo.png)
+
+### 8. Interface de placar
+A pasta `interface/` tem duas páginas no estilo de um placar de partida, que abrem direto no navegador (sem servidor):
+
+- **`simulador.html`**: o usuário monta um momento do round (placar, tempo, bomba, mapa e, para cada time, jogadores vivos, vida, colete, capacetes, kits, armas e granadas) e vê a chance de vitória de cada lado.
+- **`placar.html`**: percorre 150 rodadas reais do conjunto de teste, foto a foto, com as probabilidades do modelo final.
+
+O simulador não pede dinheiro nem tem a foto anterior do round, então usa uma versão do modelo final treinada **sem as colunas de dinheiro e sem os atributos de momento**. No teste, ela acerta 71,2% (55% no período de compra e 74% com o round em andamento), contra 71,8% do modelo completo. Para o uso no simulador, ela é treinada com todos os dados, como no passo 6. As árvores são exportadas para JavaScript e avaliadas no próprio navegador; em 300 casos do teste, a diferença para o Python ficou abaixo de 0,000001.
+
+A base só tem totais por time, então a divisão entre os jogadores mostrada na tabela é **simulada** e não muda a probabilidade:
+
+- os jogadores morrem na ordem 2, 4, 1, 5, 3;
+- a vida é dividida igualmente entre os vivos (o dano é dividido e arredondado para cima);
+- o colete também é dividido igualmente; se cada um ficaria com mais de 0 e até 80, o máximo de jogadores fica com 100 e o resto vai para um único jogador;
+- armas (uma por jogador, pistola só para quem ficou sem arma principal), granadas (até 4 por jogador, no limite do jogo), capacetes, kits e quem recebe o colete são sorteados.
+
+Para regerar os dados das páginas:
+
+```
+.\.venv\Scripts\python.exe passo11_interface.py
+.\.venv\Scripts\python.exe passo12_modelo_simulador.py
+```
+
+As logos dos times são as do jogo, usadas apenas neste trabalho acadêmico.
 
 ## Limitações e trabalhos futuros
 
